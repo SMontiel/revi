@@ -51,16 +51,17 @@ export default {
   },
   data() {
     return {
-      host: 'https://vuejs.org/',
-      //host: 'http://localhost:8000/',
       title: 'Screen',
       width: 250,
       height: 400
     };
   },
   computed: {
-    devicesData () {
-      return this.$store.state.devicesData
+    devicesData() {
+      return this.$store.state.devicesData;
+    },
+    host() {
+      return this.$store.state.host;
     }
   },
   methods: {
@@ -77,7 +78,9 @@ export default {
       });
     },
     onEnter: function(e) {
-      this.host = e.target.value;
+      this.$store.commit('setHost', {
+        newHost: e.target.value
+      });
     }
   }
 }

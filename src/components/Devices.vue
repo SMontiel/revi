@@ -16,14 +16,17 @@
       host: String
     },
     computed: {
-      devicesData () {
-        return this.$store.state.devicesData
+      devicesData() {
+        return this.$store.state.devicesData;
+      },
+      isScrollEnabled() {
+        return this.$store.state.isScrollEnabled;
       }
     },
     data() {
       return {
         preloadScript: `file://${__static}/injector.js`,
-        webviews: document.getElementsByClassName('wv'),
+        webviews: document.getElementsByClassName('wv')
       };
     },
     methods: {
@@ -39,8 +42,29 @@
         this.webviews = document.getElementsByClassName('wv');
         for (let i = 0; i < this.webviews.length; i++) {
           this.webviews[i].addEventListener('ipc-message', (event) => {
-            const data = JSON.parse(event.channel);
-            this.updateScroll(data);
+            if (this.isScrollEnabled) {
+              const data = JSON.parse(event.channel);
+              this.updateScroll(data);
+            }
+          });
+          this.webviews[i].addEventListener('will-navigate', (e) => {
+            this.$store.commit('setHost', {
+              newHost: e.url
+            });
+          });
+          this.webviews[i].addEventListener('did-navigate-in-page', (e) => {
+            const hash = e.url.substr(e.url.lastIndexOf('#'));
+            for (let i = 0; i < this.webviews.length; i++) {
+              this.webviews[i].send("enable-scroll", { enable: false });
+            }
+            for (let i = 0; i < this.webviews.length; i++) {
+              this.webviews[i].send("set-hash", { hash: hash });
+            }
+            setTimeout(() => {
+              for (let i = 0; i < this.webviews.length; i++) {
+                this.webviews[i].send("enable-scroll", { enable: true });
+              }
+            }, 500);
           });
         }
       }
